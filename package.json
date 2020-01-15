@@ -1,6 +1,6 @@
 {
   "name": "sweet-one-react-native-net",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "network tools for connecting react native to one Project echo system",
   "main": "src/index.js",
   "files": [
