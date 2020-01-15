@@ -1,7 +1,7 @@
 {
-  "name": "sweet-react-native-components",
+  "name": "sweet-one-react-native-net",
   "version": "0.0.1",
-  "description": "new beautiful components for react native",
+  "description": "network tools for connecting react native to one Project echo system",
   "main": "src/index.js",
   "files": [
     "src/"
@@ -18,16 +18,14 @@
   },
   "license": "MIT",
   "dependencies": {
-    "react": "^16.9.0",
-    "react-native": "^0.61.5",
-    "react-native-elements": "^1.1.0",
-    "react-native-maps": "0.26.1",
-    "react-native-image-picker": "^1.0.1",
+    "react": "16.9.0",
+    "react-native": "0.61.5",
+    "sweet-js-common": "https://github.com/hdnvd/SweetJsCommon.git",
     "sweet-react-native-alert": "https://github.com/hdnvd/sweetReactNativeAlert.git",
-    "react-native-persian-calendar-picker": "https://github.com/hdnvd/react-native-persian-calendar-picker.git",
-    "@react-native-community/geolocation": "^1.4.2",
-    "react-native-snap-carousel": "^3.8.0",
-    "react-native-modal-datetime-picker": "^7.5.0"
+    "axios": "^0.19.0",
+    "axios-retry": "^3.1.2",
+    "@react-native-community/netinfo": "^4.1.3",
+    "sweet-react-common": "https://github.com/hdnvd/SweetReactCommon.git"
   },
   "devDependencies": {
   },
@@ -35,9 +33,9 @@
     "react": "*",
     "react-native": "*"
   },
-  "homepage": "https://github.com/hdnvd/SweetReactNativeComponents",
+  "homepage": "https://github.com/hdnvd/SweetOneReactNativeNet",
   "bugs": {
-    "url": "https://github.com/hdnvd/SweetReactNativeComponents/issues"
+    "url": "https://github.com/hdnvd/SweetOneReactNativeNet/issues"
   },
   "contributors": [
     {
@@ -47,6 +45,6 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/hdnvd/sweetReactNativeAlert"
+    "url": "https://github.com/hdnvd/SweetOneReactNativeNet"
   }
 }
