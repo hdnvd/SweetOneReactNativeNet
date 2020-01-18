@@ -6,6 +6,7 @@ import axios from 'axios';
 import NetInfo from "@react-native-community/netinfo";
 import axiosRetry from 'axios-retry';
 import {ReactAppConfig,SweetConsole} from 'sweet-react-common';
+import DeviceInfo from 'react-native-device-info';
 
 
 class SweetFetcher {
@@ -22,10 +23,13 @@ class SweetFetcher {
         let sendErrorReport=(URL,Method,PostingData,data,error,SessionKey)=>{
             this._sendErrorReport(URL,Method,PostingData,data,error,SessionKey);
         };
+        let retryRequest=()=>{
+            this._Fetch(URL,InitialMethod,PostingData,AfterFetchFunction,OnErrorFunction,ServiceName,ActionName,navigation,SessionKey,retries+1);
+        };
         let retryRequestIfNeeded=()=>{
             if(retries<this.MaxRetriesOnErrorCount){
-                    this._Fetch(URL,InitialMethod,PostingData,AfterFetchFunction,OnErrorFunction,ServiceName,ActionName,navigation,SessionKey,retries+1);
-                    return true;
+                retryRequest();
+                return true;
             }
             return false;
         };
@@ -75,6 +79,7 @@ class SweetFetcher {
                 axiosRetry(axios, { retries: 3 });
                 let ax = axios.create({
                     baseURL: theBaseURL,
+                    timeout: 8000,
                     headers: {
                         Accept: 'application/json',
                         Authorization: Prefix + SessionKey,
@@ -83,7 +88,7 @@ class SweetFetcher {
                     mode: 'cors',
                     crossDomain: true,
                 });
-                    // alert("58");
+                // alert("58");
                 if (Method === SweetFetcher.METHOD_GET) {
                     Fetched = ax.get(URL);
                 }
@@ -96,7 +101,7 @@ class SweetFetcher {
                 else if (Method === SweetFetcher.METHOD_DELETE) {
                     Fetched = ax.delete(URL);
                 }
-                    // alert("71");
+                // alert("71");
                 Fetched.then(response => {
                     try {
                         SweetConsole.log(response,"RESPONSE OF URL:"+URL);
@@ -231,25 +236,30 @@ class SweetFetcher {
                             console.log(error);
 
                             sendErrorReport(URL,InitialMethod,PostingData,{},error,SessionKey);
+                            const showNetError=()=>{
+                                SweetAlert.displayMultipleItemAlert('خطا', 'متاسفانه مشکلی در اتصال به سرور به وجود آمد، لطفا درخواست خود را دوباره تکرار کنید',[{text:'بستن'},{text:'تلاش مجدد',onPress:retryRequest}]);
+                            };
                             if(ReactAppConfig.getDebugging()) {
                                 if (error.toString().toLowerCase().includes("network error")) {
-                                    SweetAlert.displaySimpleAlert('خطا', 'متاسفانه مشکلی در اتصال به سرور به وجود آمد، لطفا درخواست خود را دوباره تکرار کنید');
-
-                                } else {
+                                    showNetError();
+                                }
+                                else if (error.toString().toLowerCase().includes("timeout of")) {
+                                    showNetError();
+                                }else {
                                     SweetAlert.displaySimpleAlert('خطا', error.toString());
 
                                 }
                             }
                             else{
                                 if (error.toString().toLowerCase().includes("network error")) {
-                                    SweetAlert.displaySimpleAlert('خطا', 'متاسفانه مشکلی در اتصال به سرور به وجود آمد. در صورت تکرار این مشکل و اطمینان از اتصال اینترنت خود، لطفا نرم افزار را بسته و دوباره اجرا کنید');
+                                    showNetError();
                                 } else {
                                     SweetAlert.displaySimpleAlert("خطا", 'با عرض پوزش، خطایی در اجرای درخواست شما به وجود آمد. لطفا چند دقیقه دیگر مراجعه نمایید و در صورت عدم حل مشکل با ما در تماس باشید. ');
                                 }
                             }
 
-                            }
                         }
+                    }
 
                     SweetConsole.log(error.response,'Error Response');
                     SweetConsole.log(error,'Error');
@@ -260,7 +270,8 @@ class SweetFetcher {
                 if(!retryRequestIfNeeded()){
                     if (OnErrorFunction != null)
                         OnErrorFunction(null);
-                    SweetAlert.displaySimpleAlert("خطا", 'اتصال به اینترنت برقرار نیست. برای اجرای صیحی نرم افزار لطفا به اینترنت متصل شوید.');
+                    SweetAlert.displayMultipleItemAlert('خطا', 'اتصال به اینترنت برقرار نیست. برای اجرای صیحی نرم افزار لطفا به اینترنت متصل شوید.',[{text:'بستن'},{text:'تلاش مجدد',onPress:retryRequest}]);
+                    // SweetAlert.displaySimpleAlert("خطا", 'اتصال به اینترنت برقرار نیست. برای اجرای صیحی نرم افزار لطفا به اینترنت متصل شوید.');
                 }
 
             }
@@ -283,8 +294,12 @@ class SweetFetcher {
                         data.append('postingdata',JSON.stringify(PostingData));
                         data.append('receiveddata',JSON.stringify(ReceivedData));
                         data.append('error',error.toString());
-                        // data.append('error-stack',JSON.stringify(error.stack));
+                        data.append('devicebrand',DeviceInfo.getBrand().toString());
+                        data.append('devicemodel',DeviceInfo.getModel().toString());
+                        data.append('deviceos',DeviceInfo.getSystemName().toString());
+                        data.append('deviceosversion',DeviceInfo.getSystemVersion().toString());
                         data.append('appname',ReactAppConfig.getAppName());
+                        data.append('appversion',ReactAppConfig.getAppVersion());
                         let Prefix = '';
                         if (ReactAppConfig.getServerType() === ReactAppConfig.SERVERMODE_LARAVEL)
                             Prefix = 'Bearer ';
@@ -309,6 +324,18 @@ class SweetFetcher {
                                 console.log('error report sent');
                                 console.log(response);
                             }
+                        }).catch((error)=>{
+                            if(ReactAppConfig.getDebugging()){
+
+                                console.log('error report send failed');
+                                try{
+
+                                    console.log(error.response.data);
+                                }catch (e) {
+
+                                    console.log(e);
+                                }
+                            }
                         });
                     }
                 }catch (e) {
@@ -330,13 +357,13 @@ class SweetFetcher {
             // alert("227");
         }).catch(E=>{
             // alert("229");
-            this._Fetch(URL,Method,PostingData,AfterFetchFunction,OnErrorFunction,ServiceName,ActionName,history,'')
+            this._Fetch(URL,Method,PostingData,AfterFetchFunction,OnErrorFunction,ServiceName,ActionName,navigation,'')
 
         });
     }
     _isNetAvailable = (URLToCheck) => {
         const timeout = new Promise((resolve, reject) => {
-            setTimeout(reject, 10000, 'Request timed out');
+            setTimeout(reject, 5000, 'Request timed out');
         });
         const request = fetch(URLToCheck);
 
